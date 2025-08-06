@@ -1,0 +1,158 @@
+{% extends "_base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Coluna Principal com Detalhes da Requisição -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">{{ page_title }}</h4>
+                    <span class="badge 
+                        {% if requisicao.status == 'ABERTO' %}bg-warning text-dark
+                        {% elif requisicao.status == 'FINALIZADA' %}bg-primary
+                        {% elif requisicao.status == 'ATENDIDA' %}bg-success
+                        {% elif requisicao.status == 'CANCELADA' %}bg-danger
+                        {% else %}bg-secondary{% endif %}
+                        fs-6">{{ requisicao.get_status_display }}</span>
+                </div>
+                <div class="card-body">
+                    <p><strong>Solicitante:</strong> {{ requisicao.solicitante.funcionario.nome|default:requisicao.solicitante.username }}</p>
+                    <p><strong>Centro de Custo:</strong> {{ requisicao.centro_custo.nome|default:'Não informado' }}</p>
+                    <p><strong>Data de Criação:</strong> {{ requisicao.data_criacao|date:"d/m/Y H:i" }}</p>
+                    
+                    {% if requisicao.status == 'ATENDIDA' %}
+                        <p><strong>Data do Atendimento:</strong> {{ requisicao.data_atendimento|date:"d/m/Y H:i" }}</p>
+                        <p><strong>Atendido por:</strong> {{ requisicao.atendido_por.username }}</p>
+                    {% endif %}
+
+                    <hr>
+
+                    <h5 class="mt-4">Itens da Requisição</h5>
+                    <div class="table-responsive">
+                        <!-- Tabela de Itens -->
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Produto</th>
+                                    <th scope="col" class="text-center">Qtd. Solicitada</th>
+                                    <th scope="col" class="text-end">Custo Médio Unit.</th>
+                                    <th scope="col" class="text-end">Valor Solicitado</th>
+                                    {% if requisicao.status == 'ATENDIDA' %}
+                                    <th scope="col" class="text-center">Qtd. Atendida</th>
+                                    <th scope="col" class="text-end">Valor Atendido</th>
+                                    {% endif %}
+                                    {% if requisicao.status == 'ABERTO' %}
+                                    <th scope="col" class="text-end">Ações</th>
+                                    {% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in requisicao.itens.all %}
+                                <tr>
+                                    <td>{{ item.produto.nome_produto }}</td>
+                                    <td class="text-center">{{ item.quantidade }}</td>
+                                    <td class="text-end">R$ {{ item.produto.custo_medio|floatformat:2 }}</td>
+                                    <td class="text-end">R$ {{ item.valor_solicitado|floatformat:2 }}</td>
+                                    {% if requisicao.status == 'ATENDIDA' %}
+                                    <td class="text-center">{{ item.quantidade_atendida|default_if_none:"-" }}</td>
+                                    <td class="text-end">R$ {{ item.valor_atendido|floatformat:2 }}</td>
+                                    {% endif %}
+                                    {% if requisicao.status == 'ABERTO' %}
+                                    <td class="text-end">
+                                        <form method="post" action="{% url 'materiais:excluir_item_requisicao' pk=item.pk %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Tem certeza que deseja remover este item?');">
+                                                <i class="fas fa-trash-alt"></i> Excluir
+                                            </button>
+                                        </form>
+                                    </td>
+                                    {% endif %}
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">Sua requisição está vazia.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="table-group-divider">
+                                <tr>
+                                    <td colspan="3" class="text-end fw-bold">Total:</td>
+                                    <td class="text-end fw-bold">R$ {{ requisicao.valor_total_solicitado|floatformat:2 }}</td>
+                                    {% if requisicao.status == 'ATENDIDA' %}
+                                    <td></td>
+                                    <td class="text-end fw-bold">R$ {{ requisicao.valor_total_atendido|floatformat:2 }}</td>
+                                    {% endif %}
+                                    {% if requisicao.status == 'ABERTO' %}
+                                    <td></td>
+                                    {% endif %}
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <hr>
+                    <!-- Ações do Solicitante -->
+                    {% if requisicao.status == 'ABERTO' and request.user == requisicao.solicitante %}
+                    <div class="d-flex justify-content-between align-items-center mt-4">
+                        <div>
+                            <a href="{% url 'materiais:fazer_requisicao' %}" class="btn btn-secondary"><i class="fas fa-plus"></i> Adicionar Mais Itens</a>
+                            <a href="{% url 'materiais:cancelar_requisicao' pk=requisicao.pk %}" class="btn btn-outline-danger ms-2">Cancelar Requisição</a>
+                        </div>
+                        {% if requisicao.itens.all %}
+                        <form method="post" action="{% url 'materiais:finalizar_requisicao' pk=requisicao.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success btn-lg" onclick="return confirm('Tem certeza que deseja finalizar e enviar esta requisição?');">
+                                <i class="fas fa-check-circle"></i> Finalizar Requisição
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    <!-- Ações do Almoxarife -->
+                    {% if requisicao.status == 'FINALIZADA' and user.is_authenticated %}
+                        {% if user.is_superuser or 'Almoxarifes' in user.groups.all|join:',' or 'Administradores' in user.groups.all|join:',' %}
+                        <div class="mt-4 p-3 border rounded bg-light">
+                            <h5 class="text-primary">Ações do Almoxarifado</h5>
+                            <p>Esta requisição foi finalizada e aguarda atendimento.</p>
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1 me-3">
+                                    <form method="post" action="{% url 'materiais:estornar_requisicao' pk=requisicao.pk %}">
+                                        {% csrf_token %}
+                                        <div class="mb-2">
+                                            <label for="motivo_estorno" class="form-label fw-bold">Estornar Requisição</label>
+                                            <textarea class="form-control form-control-sm" id="motivo_estorno" name="motivo_estorno" rows="2" placeholder="Motivo do estorno (obrigatório)" required></textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-danger" onclick="return confirm('Tem certeza que deseja ESTORNAR esta requisição?');">
+                                            <i class="fas fa-undo"></i> Estornar
+                                        </button>
+                                    </form>
+                                </div>
+                                <div class="text-end">
+                                     <p class="fw-bold">Confirmar Atendimento</p>
+                                    <a href="{% url 'materiais:atendimento_requisicao' pk=requisicao.pk %}" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-dolly-flatbed me-2"></i> Atender Requisição
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                    <!-- Botão de Exportação para PDF -->
+                    {% if requisicao.status == 'ATENDIDA' or requisicao.status == 'FINALIZADA' %}
+                    <div class="mt-4 text-end">
+                        <a href="{% url 'materiais:requisicao_pdf' pk=requisicao.pk %}" class="btn btn-secondary" target="_blank">
+                            <i class="fas fa-file-pdf me-2"></i>Exportar para PDF
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+{% endblock %}

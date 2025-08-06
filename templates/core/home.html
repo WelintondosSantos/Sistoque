@@ -1,0 +1,87 @@
+{% extends "_base.html" %}
+{% load static %}
+
+{% block title %}Painel Principal - Sistoque{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    {# O título da página agora é uma variável que pode ser passada pela view #}
+    <div class="system-title">
+        {{ page_title|default:"Painel de Controle Principal" }}
+    </div>
+
+    {% if urgent_alerts %}
+    <div class="alerts-panel">
+        <h5>Comunicados Urgentes!</h5>
+        {% for alert in urgent_alerts %}
+            <div class="alert-item alert-urgent">{{ alert.message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="chat-container" style="border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
+    
+        <h4>Minhas Conversas</h4>
+        {% if conversas_ativas %}
+            <ul class="chat-list">
+                {% for conversa in conversas_ativas %}
+                    <li>
+                        <!-- =============================================================== -->
+                        <!-- INÍCIO DA CORREÇÃO 1 -->
+                        <!-- Construímos a URL manualmente com o parâmetro de query -->
+                        <!-- =============================================================== -->
+                        <a href="{% url 'chat:chat_home' %}?conversa_id={{ conversa.pk }}">
+                            {# Lógica para mostrar o nome do OUTRO participante da conversa #}
+                            {% for participante in conversa.participantes.all %}
+                                {% if participante != request.user %}
+                                    Conversa com <strong>{{ participante.get_full_name|default:participante.username }}</strong>
+                                {% endif %}
+                            {% endfor %}
+                        </a>
+                        <!-- =============================================================== -->
+                        <!-- FIM DA CORREÇÃO 1 -->
+                        <!-- =============================================================== -->
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-muted">Você ainda não tem conversas ativas.</p>
+        {% endif %}
+    
+        <hr style="margin: 20px 0;"> <h4>Iniciar Nova Conversa</h4>
+        {% if usuarios_para_chat %}
+            <ul class="user-list">
+                {% for usuario in usuarios_para_chat %}
+                    <li>
+                        <!-- =============================================================== -->
+                        <!-- INÍCIO DA CORREÇÃO 2 -->
+                        <!-- Usamos o nome de URL correto: 'iniciar_conversa' -->
+                        <!-- =============================================================== -->
+                        <a href="{% url 'chat:iniciar_conversa' user_id=usuario.pk %}">
+                            + {{ usuario.get_full_name|default:usuario.username }}
+                        </a>
+                        <!-- =============================================================== -->
+                        <!-- FIM DA CORREÇÃO 2 -->
+                        <!-- =============================================================== -->
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-muted">Nenhum novo usuário para conversar no momento.</p>
+        {% endif %}
+    </div>
+
+
+    <div class="content-box">
+        <h5 class="content-header">Avisos Gerais</h5>
+        {% for notice in general_notices %}
+            <p class="content-description">{{ notice.text }}</p>
+            {% if not forloop.last %}
+                <hr>
+            {% endif %}
+        {% empty %}
+            <p class="text-muted mb-0">Nenhum aviso geral no momento.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock content %}

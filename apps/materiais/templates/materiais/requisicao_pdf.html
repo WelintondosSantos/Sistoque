@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Requisição #{{ requisicao.pk }}</title>
+    <style>
+        @page { size: A4; margin: 2cm; }
+        body { font-family: sans-serif; font-size: 12px; }
+        h1 { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; }
+        .info { margin-bottom: 20px; }
+        .info p { margin: 5px 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .text-center { text-align: center; }
+        .text-end { text-align: right; }
+        .total { font-weight: bold; }
+        footer { position: fixed; bottom: -1.5cm; left: 0; right: 0; text-align: center; font-size: 10px; color: #777; }
+    </style>
+</head>
+<body>
+    <footer>
+        Sistema de Controle de Estoque - Gerado em {% now "d/m/Y H:i" %}
+    </footer>
+
+    <h1>Comprovativo de Requisição #{{ requisicao.pk }}</h1>
+
+    <div class="info">
+        <p><strong>Solicitante:</strong> {{ requisicao.solicitante.funcionario.nome|default:requisicao.solicitante.username }}</p>
+        <p><strong>Centro de Custo:</strong> {{ requisicao.centro_custo.nome|default:'Não informado' }}</p>
+        <p><strong>Status:</strong> {{ requisicao.get_status_display }}</p>
+        <p><strong>Data da Solicitação:</strong> {{ requisicao.data_criacao|date:"d/m/Y H:i" }}</p>
+        {% if requisicao.status == 'ATENDIDA' %}
+            <p><strong>Data do Atendimento:</strong> {{ requisicao.data_atendimento|date:"d/m/Y H:i" }}</p>
+            <p><strong>Atendido por:</strong> {{ requisicao.atendido_por.username }}</p>
+        {% endif %}
+    </div>
+
+    <h3>Itens da Requisição</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Produto</th>
+                <th class="text-center">Qtd. Solicitada</th>
+                <th class="text-center">Qtd. Atendida</th>
+                <th class="text-end">Custo Unit. (R$)</th>
+                <th class="text-end">Valor Atendido (R$)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in requisicao.itens.all %}
+            <tr>
+                <td>{{ item.produto.nome_produto }}</td>
+                <td class="text-center">{{ item.quantidade }}</td>
+                <td class="text-center">{{ item.quantidade_atendida|default_if_none:"0" }}</td>
+                <td class="text-end">{{ item.produto.custo_medio|floatformat:2 }}</td>
+                <td class="text-end">{{ item.valor_atendido|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="4" class="text-end total">Valor Total Atendido:</td>
+                <td class="text-end total">R$ {{ requisicao.valor_total_atendido|floatformat:2 }}</td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+</html>

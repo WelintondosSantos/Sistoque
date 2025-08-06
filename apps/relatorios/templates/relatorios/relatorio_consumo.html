@@ -1,0 +1,114 @@
+{% extends "_base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white">
+            <h4 class="mb-0">{{ page_title }}</h4>
+        </div>
+        <div class="card-body">
+            <!-- Formulário de Filtros -->
+            <form method="post" class="p-3 border rounded bg-light mb-4" novalidate>
+                {% csrf_token %}
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label for="{{ form.data_inicio.id_for_label }}" class="form-label">{{ form.data_inicio.label }}</label>
+                        {{ form.data_inicio }}
+                        {% if form.data_inicio.errors %}<div class="text-danger mt-1"><small>{{ form.data_inicio.errors.as_text }}</small></div>{% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        <label for="{{ form.data_fim.id_for_label }}" class="form-label">{{ form.data_fim.label }}</label>
+                        {{ form.data_fim }}
+                        {% if form.data_fim.errors %}<div class="text-danger mt-1"><small>{{ form.data_fim.errors.as_text }}</small></div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label for="{{ form.centros_de_custo.id_for_label }}" class="form-label">{{ form.centros_de_custo.label }}</label>
+                        {{ form.centros_de_custo }}
+                        <small class="form-text text-muted">{{ form.centros_de_custo.help_text }}</small>
+                        {% if form.centros_de_custo.errors %}<div class="text-danger mt-1"><small>{{ form.centros_de_custo.errors.as_text }}</small></div>{% endif %}
+                    </div>
+                    <div class="col-md-2 d-grid">
+                        <button type="submit" name="action" value="filtrar" class="btn btn-primary">
+                            <i class="fas fa-filter me-2"></i>Gerar Relatório
+                        </button>
+                    </div>
+                </div>
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger mt-3">
+                        {% for error in form.non_field_errors %}
+                            <p class="mb-0">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </form>
+
+            <!-- Seção de Resultados -->
+            {% if resultados is not None %}
+            <hr>
+            
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mt-0">Resultados do Relatório</h5>
+                
+                {% if resultados %}
+                <form method="post" target="_blank">
+                    {% csrf_token %}
+                    
+                    <!-- Renderiza os campos de filtro validados como campos ocultos -->
+                    <input type="hidden" name="data_inicio" value="{{ submitted_data.data_inicio|date:'Y-m-d' }}">
+                    <input type="hidden" name="data_fim" value="{{ submitted_data.data_fim|date:'Y-m-d' }}">
+                    {% for cc in submitted_data.centros_de_custo %}
+                    <input type="hidden" name="centros_de_custo" value="{{ cc.pk }}">
+                    {% endfor %}
+                    
+                    <button type="submit" name="action" value="exportar_pdf" class="btn btn-secondary">
+                        <i class="fas fa-file-pdf me-2"></i>Exportar para PDF
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">Produto</th>
+                            <th scope="col" class="text-center">Unidade</th>
+                            <th scope="col" class="text-center">Quantidade Consumida</th>
+                            <th scope="col" class="text-end">Valor Total (R$)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in resultados %}
+                        <tr>
+                            <td>{{ item.produto__nome_produto }}</td>
+                            <td class="text-center">{{ item.produto__unidade_medida }}</td>
+                            <td class="text-center">{{ item.quantidade_total }}</td>
+                            <td class="text-end">R$ {{ item.valor_total|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-4">
+                                Nenhum consumo encontrado para os filtros selecionados.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    {% if resultados %}
+                    <tfoot class="table-group-divider">
+                        <tr>
+                            <td colspan="3" class="text-end fw-bold fs-5">Valor Total Geral:</td>
+                            <td class="text-end fw-bold fs-5">R$ {{ valor_total_geral|floatformat:2 }}</td>
+                        </tr>
+                    </tfoot>
+                    {% endif %}
+                </table>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+{% endblock %}

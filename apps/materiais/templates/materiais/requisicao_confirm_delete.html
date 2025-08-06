@@ -1,0 +1,29 @@
+{% extends "_base.html" %}
+
+{% block title %}Confirmar Cancelamento{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">Confirmar Cancelamento de Requisição</h4>
+                </div>
+                <div class="card-body">
+                    <p>Você tem certeza que deseja cancelar a <strong>Requisição #{{ object.pk }}</strong>?</p>
+                    <p class="text-muted">Todos os itens adicionados a ela serão perdidos. Esta ação não pode ser desfeita.</p>
+                    <hr>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-end">
+                            <a href="{% url 'materiais:detalhe_requisicao' pk=object.pk %}" class="btn btn-secondary me-2">Voltar</a>
+                            <button type="submit" class="btn btn-danger">Sim, cancelar requisição</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</di
+{% endblock %}

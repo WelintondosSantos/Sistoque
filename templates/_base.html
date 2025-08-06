@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistoque - Sistema de Gerenciamento de Materiais{% endblock %}</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/_base.css' %}">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="d-flex flex-column min-vh-100 {% block body_class %}{% endblock %}">
+    <header class="header-gov">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-7">
+                    <div class="d-flex align-items-center">
+                        <img src="{% static 'img/logo_itesp.png' %}" alt="Logo ITESP" class="logo-sp me-3">
+                        <div>
+                            <div class="secretaria-title">Fundação Instituto de Terras de São Paulo</div>
+                            <div class="governo-title">GOVERNO DO ESTADO<br>DE SÃO PAULO</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-5 text-end">
+                    {% if user.is_authenticated %}
+                        <div class="user-details">
+                            <div class="d-flex justify-content-end gap-3">
+                                <span><strong>Nome:</strong> {{ user.funcionario.nome|default:"-" }}</span>
+                                <span><strong>Matrícula:</strong> {{ user.funcionario.matricula|default:"-" }}</span>
+                            </div>
+                            <div class="d-flex justify-content-end gap-3">
+                                <span><strong>Lotação:</strong> {{ user.funcionario.lotacao|default:"-" }}</span>
+                                <span><strong>Diretoria:</strong> {{ user.funcionario.diretoria|default:"-" }}</span>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    {% block navigation %}
+        {% include '_partials/_navigation.html' %}
+    {% endblock navigation %}
+
+    <main class="main-content flex-grow-1">
+        <div class="container-fluid py-4">
+            {% if messages %}
+                <div class="alerts-section">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer class="footer-gov mt-auto py-3">
+        <div class="container-fluid text-center">
+            <small class="text-muted">
+                © {% now "Y" %} - Fundação Instituto de Terras de São Paulo - Governo do Estado de São Paulo
+            </small>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

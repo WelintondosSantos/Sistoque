@@ -1,0 +1,66 @@
+{% extends "_base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Coluna da Esquerda: Lista de Contatos e Conversas -->
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Minhas Conversas</h5>
+                </div>
+                <div class="list-group list-group-flush" style="max-height: 250px; overflow-y: auto;">
+                    {% for conversa in conversas %}
+                        <a href="?conversa_id={{ conversa.id }}" class="list-group-item list-group-item-action">
+                            {% for participante in conversa.participantes.all %}
+                                {% if participante != request.user %}
+                                    {{ participante.funcionario.nome|default:participante.username }}
+                                {% endif %}
+                            {% endfor %}
+                        </a>
+                    {% endfor %}
+                </div>
+                <div class="card-header bg-light border-top">
+                    <h5 class="mb-0">Iniciar Nova Conversa</h5>
+                </div>
+                <div class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
+                    {% for usuario in usuarios_contactaveis %}
+                        <a href="{% url 'chat:iniciar_conversa' user_id=usuario.id %}" class="list-group-item list-group-item-action">
+                            {{ usuario.funcionario.nome|default:usuario.username }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Coluna da Direita: Janela de Chat -->
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 id="chat-room-name" class="mb-0">Selecione uma conversa</h5>
+                </div>
+                <div class="card-body p-0">
+                    <!-- O histórico de mensagens será carregado aqui pelo JavaScript -->
+                    <div id="chat-log" class="p-3" style="height: 500px; overflow-y: auto;">
+                        <p id="chat-empty-message" class="text-center text-muted mt-5">Selecione uma conversa ou inicie uma nova para ver as mensagens.</p>
+                    </div>
+                </div>
+                <div id="chat-input-container" class="card-footer" style="display: none;">
+                    <div class="input-group">
+                        <input id="chat-message-input" type="text" class="form-control" placeholder="Digite sua mensagem...">
+                        <button id="chat-message-submit" class="btn btn-primary">Enviar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- O username ainda é útil para comparações no JS -->
+{{ request.user.username|json_script:"current-user-username" }}
+
+<script src="{% static 'js/chat.js' %}"></script>
+{% endblock %}

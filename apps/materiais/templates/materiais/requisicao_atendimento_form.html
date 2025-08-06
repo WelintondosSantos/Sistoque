@@ -1,0 +1,82 @@
+{% extends "_base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">{{ page_title }}</h4>
+            </div>
+            <div class="card-body">
+                <p><strong>Solicitante:</strong> {{ requisicao.solicitante.funcionario.nome|default:requisicao.solicitante.username }}</p>
+                <p><strong>Data da Finalização:</strong> {{ requisicao.data_finalizacao|date:"d/m/Y H:i" }}</p>
+                
+                <hr>
+
+                <h5 class="mt-4">Itens para Atendimento</h5>
+                <p class="text-muted">Ajuste a "Quantidade a Atender" para cada item conforme necessário. Se um item não puder ser atendido, defina a quantidade como 0.</p>
+
+                <!-- Exibe erros gerais do formset (ex: erro na transação) -->
+                {% if formset.non_form_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in formset.non_form_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- ESSENCIAL: Renderiza o management form do formset -->
+                {{ formset.management_form }}
+
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">Produto</th>
+                                <th scope="col" class="text-center">Qtd. Solicitada</th>
+                                <th scope="col" class="text-center" style="width: 150px;">Qtd. a Atender</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for form in formset %}
+                            <tr>
+                                <td>
+                                    <!-- Campos ocultos para cada formulário do formset -->
+                                    {{ form.id }}
+                                    <strong>{{ form.instance.produto.nome_produto }}</strong><br>
+                                    <small class="text-muted">Saldo Atual: {{ form.instance.produto.saldo_total }}</small>
+                                </td>
+                                <td class="text-center">{{ form.instance.quantidade|floatformat:2 }}</td>
+                                <td>
+                                    {{ form.quantidade_atendida }}
+                                    {% if form.quantidade_atendida.errors %}
+                                        <div class="text-danger mt-1">
+                                            <small>{{ form.quantidade_atendida.errors.as_text|striptags }}</small>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <hr>
+                
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{% url 'materiais:detalhe_requisicao' pk=requisicao.pk %}" class="btn btn-secondary me-md-2">Cancelar</a>
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fas fa-check-square me-2"></i>Confirmar Atendimento e Dar Baixa no Estoque
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Adicione FontAwesome para os ícones, se o seu base.html ainda não tiver -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+{% endblock %}

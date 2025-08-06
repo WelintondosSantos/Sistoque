@@ -1,0 +1,102 @@
+/* =========================================
+   ARQUIVO UNIFICADO DE ESTILOS DE AUTENTICAÇÃO
+   (Substitui login.css e register.css)
+   ========================================= */
+
+:root {
+    /* Pegando as variáveis do _base.css para manter a consistência */
+    --primary-color: #2c5d7a;
+    --primary-dark: #1e4354;
+    --bg-white: #ffffff;
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --border-light: #dddddd;
+}
+body.auth-page {
+    margin: 0; /* Remove a margem padrão do navegador, que causa a barra de rolagem */
+}
+
+/* Aplica um fundo e centraliza o conteúdo em páginas de autenticação */
+.auth-page .main-content {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    padding: 20px !important; 
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+}
+
+/* Oculta elementos do template base que não devem aparecer em páginas de auth */
+.auth-page .header-gov,
+.auth-page .navbar-custom,
+.auth-page .footer-gov {
+    display: none !important;
+}
+
+/* Card principal que engloba a imagem e o formulário */
+.auth-card {
+    max-width: 900px;
+    width: 100%;
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    background: var(--bg-white);
+}
+
+/* Lado esquerdo do card - Branding com logo */
+.auth-brand-section {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Efeito de animação sutil no fundo */
+.auth-brand-section::before {
+    content: '';
+    position: absolute;
+    top: -50%; right: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(5deg); }
+}
+
+.auth-logo {
+    width: 100px;
+    margin-bottom: 24px;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+    z-index: 2;
+}
+
+.auth-brand-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    z-index: 2;
+}
+
+.auth-brand-subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    text-align: center;
+    max-width: 300px;
+    z-index: 2;
+}
+
+/* Lado direito do card - Formulário */
+.auth-form-section {
+    padding: 40px;
+}

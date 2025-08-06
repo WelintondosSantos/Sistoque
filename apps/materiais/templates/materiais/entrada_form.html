@@ -1,0 +1,99 @@
+{% extends "_base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">{{ page_title }}</h4>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted">Preencha os campos abaixo para registrar a entrada de um novo material no estoque.</p>
+                    <hr>
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <!-- Campo Produto -->
+                        <div class="mb-3">
+                            <label for="{{ form.produto.id_for_label }}" class="form-label">{{ form.produto.label }}</label>
+                            {{ form.produto }}
+                            {% if form.produto.errors %}
+                                <div class="text-danger mt-1"><small>{{ form.produto.errors.as_text }}</small></div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <!-- Campo Quantidade -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.quantidade.id_for_label }}" class="form-label">{{ form.quantidade.label }}</label>
+                                {{ form.quantidade }}
+                                {% if form.quantidade.errors %}
+                                    <div class="text-danger mt-1"><small>{{ form.quantidade.errors.as_text }}</small></div>
+                                {% endif %}
+                            </div>
+                            <!-- Campo Valor Unitário -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.valor_unitario.id_for_label }}" class="form-label">{{ form.valor_unitario.label }}</label>
+                                {{ form.valor_unitario }}
+                                {% if form.valor_unitario.errors %}
+                                    <div class="text-danger mt-1"><small>{{ form.valor_unitario.errors.as_text }}</small></div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Campo Data de Validade -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.data_validade.id_for_label }}" class="form-label">{{ form.data_validade.label }}</label>
+                                {{ form.data_validade }}
+                                {% if form.data_validade.errors %}
+                                    <div class="text-danger mt-1"><small>{{ form.data_validade.errors.as_text }}</small></div>
+                                {% endif %}
+                            </div>
+                            <!-- Campo Código do Lote -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.codigo_lote.id_for_label }}" class="form-label">{{ form.codigo_lote.label }}</label>
+                                {{ form.codigo_lote }}
+                                {% if form.codigo_lote.errors %}
+                                    <div class="text-danger mt-1"><small>{{ form.codigo_lote.errors.as_text }}</small></div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Campo Observação -->
+                        <div class="mb-3">
+                            <label for="{{ form.observacao.id_for_label }}" class="form-label">{{ form.observacao.label }}</label>
+                            {{ form.observacao }}
+                            {% if form.observacao.errors %}
+                                <div class="text-danger mt-1"><small>{{ form.observacao.errors.as_text }}</small></div>
+                            {% endif %}
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'materiais:lista_produtos' %}" class="btn btn-secondary me-md-2">Cancelar</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Salvar Entrada
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+{% endblock %}

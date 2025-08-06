@@ -1,0 +1,73 @@
+{% extends "_base.html" %}
+{% load static %}
+
+{% block body_class %}auth-page{% endblock %}
+
+{% block title %}Cadastro – Sistoque{% endblock %}
+
+{% block extra_head %}
+    <link href="{% static 'css/auth.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center min-vh-100">
+    <div class="card shadow-lg" style="width: 100%; max-width: 900px;">
+        <div class="row g-0">
+            <div class="col-md-6 login-image d-flex flex-column justify-content-center align-items-center p-4 text-white">
+                <img src="{% static 'img/logo.png' %}" alt="Logo" class="mb-4" style="width: 100px;">
+                <h1 class="fw-bold">Sistoque</h1>
+                <p class="text-center px-3">Cadastre-se para utilizar o sistema interno de requisição e controle de materiais.</p>
+            </div>
+
+            <div class="col-md-6 p-5">
+                <div class="d-flex justify-content-end mb-3">
+                    <p class="mb-0 me-2">Já tem conta?</p>
+                    <a href="{% url 'authentication:login' %}" class="btn btn-outline-dark btn-sm">Entrar</a>
+                </div>
+
+                <h2 class="fw-bold mb-4">Criar uma conta</h2>
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="{{ form.matricula.id_for_label }}" class="form-label">{{ form.matricula.label }}</label>
+                        {{ form.matricula }}
+                        {% for error in form.matricula.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.password_1.id_for_label }}" class="form-label">{{ form.password_1.label }}</label>
+                        {{ form.password_1 }}
+                        {% for error in form.password_1.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="{{ form.password_2.id_for_label }}" class="form-label">{{ form.password_2.label }}</label>
+                        {{ form.password_2 }}
+                        {% for error in form.password_2.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary rounded-pill py-2">Cadastrar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

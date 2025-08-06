@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório de Consumo</title>
+    <!-- (Use o mesmo <style> do requisicao_pdf.html) -->
+</head>
+<body>
+    <h1>Relatório de Consumo por Centro de Custo</h1>
+    <div class="info">
+        <p><strong>Período de Análise:</strong> de {{ data_inicio|date:"d/m/Y" }} a {{ data_fim|date:"d/m/Y" }}</p>
+        <p><strong>Centros de Custo:</strong> 
+            {% for cc in centros_de_custo %}
+                {{ cc.nome }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        </p>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Produto</th>
+                <th class="text-center">Unidade</th>
+                <th class="text-center">Qtd. Consumida</th>
+                <th class="text-end">Valor Total (R$)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in resultados %}
+            <tr>
+                <td>{{ item.produto__nome_produto }}</td>
+                <td class="text-center">{{ item.produto__unidade_medida }}</td>
+                <td class="text-center">{{ item.quantidade_total }}</td>
+                <td class="text-end">{{ item.valor_total|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" class="text-end total">Valor Total Geral:</td>
+                <td class="text-end total">R$ {{ valor_total_geral|floatformat:2 }}</td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+</html>
