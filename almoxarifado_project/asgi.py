@@ -6,7 +6,7 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
 import apps.chat.routing # Importe o nosso novo routing
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'seu_projeto.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'almoxarifado_project.settings.production')
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
