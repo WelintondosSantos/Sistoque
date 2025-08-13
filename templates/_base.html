@@ -8,9 +8,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css" rel="stylesheet">
     
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/_base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/_base.css' %}"> 
     
-    {% block extra_head %}{% endblock %}
+    {% block extra_head %} {% endblock %}
+   
 </head>
 <body class="d-flex flex-column min-vh-100 {% block body_class %}{% endblock %}">
     <header class="header-gov">

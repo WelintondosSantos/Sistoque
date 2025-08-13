@@ -13,7 +13,6 @@ body.auth-page {
     align-items: center;
     padding: 20px;
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-    font-family: var(--font-sans-serif);
 }
 
 /* Oculta elementos do template base que não devem aparecer em páginas de auth */

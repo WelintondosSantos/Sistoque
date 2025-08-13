@@ -211,6 +211,9 @@ ASGI_APPLICATION = 'almoxarifado_project.asgi.application'
 # Para produção, isto seria configurado para usar o Redis.
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],  # Aponta para o servidor Redis local
+        },
     },
 }

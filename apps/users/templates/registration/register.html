@@ -6,6 +6,7 @@
 {% block title %}Cadastro – Sistoque{% endblock %}
 
 {% block extra_head %}
+    {{ block.super }}  {# ESSA LINHA É A CORREÇÃO: Carrega o conteúdo do _base.html #}
     <link href="{% static 'css/auth.css' %}" rel="stylesheet">
 {% endblock %}
 

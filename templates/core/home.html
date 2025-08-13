@@ -3,85 +3,133 @@
 
 {% block title %}Painel Principal - Sistoque{% endblock %}
 
+{% block extra_head %}
+    <link href="{% static 'css/dashboard-cards.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
-    {# O título da página agora é uma variável que pode ser passada pela view #}
-    <div class="system-title">
-        {{ page_title|default:"Painel de Controle Principal" }}
-    </div>
 
-    {% if urgent_alerts %}
-    <div class="alerts-panel">
-        <h5>Comunicados Urgentes!</h5>
-        {% for alert in urgent_alerts %}
-            <div class="alert-item alert-urgent">{{ alert.message }}</div>
-        {% endfor %}
+    {# ===================================================================== #}
+    {#          NOVO BLOCO: Exibe o painel APENAS para Requisitantes         #}
+    {# ===================================================================== #}
+    {% if 'Requisitantes' in user.groups.all|join:',' and not user.is_superuser %}
+    <div class="row">
+        <div class="col-12">
+            <h4 class="mb-3">Meu Painel</h4>
+        </div>
+        <div class="col-xl-3 col-md-4 col-sm-6 mb-4">
+            <a href="{% url 'authentication:dashboard_requisitante' %}" class="card-link">
+                <div class="card dashboard-card card-info shadow h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-person-workspace card-icon"></i>
+                        <h5 class="card-title mb-0">Painel do Requisitante</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {# Se houver outros cards para requisitantes, adicione-os aqui #}
     </div>
     {% endif %}
 
-    <div class="chat-container" style="border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
-    
-        <h4>Minhas Conversas</h4>
-        {% if conversas_ativas %}
-            <ul class="chat-list">
-                {% for conversa in conversas_ativas %}
-                    <li>
-                        <!-- =============================================================== -->
-                        <!-- INÍCIO DA CORREÇÃO 1 -->
-                        <!-- Construímos a URL manualmente com o parâmetro de query -->
-                        <!-- =============================================================== -->
-                        <a href="{% url 'chat:chat_home' %}?conversa_id={{ conversa.pk }}">
-                            {# Lógica para mostrar o nome do OUTRO participante da conversa #}
-                            {% for participante in conversa.participantes.all %}
-                                {% if participante != request.user %}
-                                    Conversa com <strong>{{ participante.get_full_name|default:participante.username }}</strong>
-                                {% endif %}
-                            {% endfor %}
-                        </a>
-                        <!-- =============================================================== -->
-                        <!-- FIM DA CORREÇÃO 1 -->
-                        <!-- =============================================================== -->
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p class="text-muted">Você ainda não tem conversas ativas.</p>
-        {% endif %}
-    
-        <hr style="margin: 20px 0;"> <h4>Iniciar Nova Conversa</h4>
-        {% if usuarios_para_chat %}
-            <ul class="user-list">
-                {% for usuario in usuarios_para_chat %}
-                    <li>
-                        <!-- =============================================================== -->
-                        <!-- INÍCIO DA CORREÇÃO 2 -->
-                        <!-- Usamos o nome de URL correto: 'iniciar_conversa' -->
-                        <!-- =============================================================== -->
-                        <a href="{% url 'chat:iniciar_conversa' user_id=usuario.pk %}">
-                            + {{ usuario.get_full_name|default:usuario.username }}
-                        </a>
-                        <!-- =============================================================== -->
-                        <!-- FIM DA CORREÇÃO 2 -->
-                        <!-- =============================================================== -->
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p class="text-muted">Nenhum novo usuário para conversar no momento.</p>
-        {% endif %}
+
+    {# Bloco que já existia: Exibe o painel para Admins e Almoxarifes #}
+    {% if user.is_superuser or 'Almoxarifes' in user.groups.all|join:',' or 'Administradores' in user.groups.all|join:',' %}
+    <div class="row">
+        <div class="col-12">
+            <h4 class="mb-3">Ações Principais</h4>
+        </div>
+
+        <div class="col-xl-3 col-md-4 col-sm-6 mb-4">
+            <a href="{% url 'materiais:registrar_entrada' %}" class="card-link">
+                <div class="card dashboard-card shadow h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-box-arrow-in-down card-icon"></i>
+                        <h5 class="card-title mb-0">Registrar Entrada</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-xl-3 col-md-4 col-sm-6 mb-4">
+            <a href="{% url 'materiais:lista_requisicoes_pendentes' %}" class="card-link">
+                <div class="card dashboard-card shadow h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-journal-text card-icon"></i>
+                        <h5 class="card-title mb-0">Requisições Pendentes</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-xl-3 col-md-4 col-sm-6 mb-4">
+            <a href="{% url 'materiais:lista_produtos' %}" class="card-link">
+                <div class="card dashboard-card shadow h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-box-seam card-icon"></i>
+                        <h5 class="card-title mb-0">Consultar Estoque</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-xl-3 col-md-4 col-sm-6 mb-4">
+            <a href="{% url 'relatorios:relatorio_consumo' %}" class="card-link">
+                <div class="card dashboard-card shadow h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-file-earmark-bar-graph card-icon"></i>
+                        <h5 class="card-title mb-0">Relatórios</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
     </div>
+    {% endif %}
 
+    <hr class="my-4">
 
-    <div class="content-box">
-        <h5 class="content-header">Avisos Gerais</h5>
-        {% for notice in general_notices %}
-            <p class="content-description">{{ notice.text }}</p>
-            {% if not forloop.last %}
-                <hr>
-            {% endif %}
-        {% empty %}
-            <p class="text-muted mb-0">Nenhum aviso geral no momento.</p>
-        {% endfor %}
+    {# Seção de Utilitários, visível para todos #}
+    <div class="row">
+        <div class="col-12">
+            <h4 class="mb-3">Utilitários</h4>
+        </div>
+
+        <div class="col-xl-3 col-md-4 col-sm-6 mb-4">
+            <a href="{% url 'chat:chat_home' %}" class="card-link">
+                <div class="card dashboard-card card-info shadow h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-chat-dots-fill card-icon"></i>
+                        <h5 class="card-title mb-0">Chat Interno</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        <div class="col-xl-3 col-md-4 col-sm-6 mb-4">
+            <a href="#" class="card-link"> {# << INSIRA A URL DA PÁGINA DE AVISOS AQUI #}
+                <div class="card dashboard-card card-warning shadow h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-exclamation-triangle-fill card-icon"></i>
+                        <h5 class="card-title mb-0">Avisos Gerais</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        <div class="col-xl-3 col-md-4 col-sm-6 mb-4">
+            <form action="{% url 'authentication:logout' %}" method="post" class="h-100">
+                {% csrf_token %}
+                <button type="submit" class="btn-card-logout">
+                    <div class="card dashboard-card card-danger shadow h-100">
+                        <div class="card-body text-center">
+                            <i class="bi bi-box-arrow-right card-icon"></i>
+                            <h5 class="card-title mb-0">Sair do Sistema</h5>
+                        </div>
+                    </div>
+                </button>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock content %}

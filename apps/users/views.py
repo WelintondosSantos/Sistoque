@@ -108,22 +108,6 @@ def logout_view(request):
     
     # Após o logout (ou se o acesso for GET), redireciona sempre para a página de login.
     return redirect('authentication:login')
-
-class RequisitanteDashboardView(LoginRequiredMixin, TemplateView):
-    """
-    Exibe o painel de controle principal para os usuários do grupo 'Requisitantes'.
-    """
-    template_name = 'users/dashboard_requisitante.html'
-
-    def get_context_data(self, **kwargs):
-        """
-        Adiciona contexto extra ao template, como o título da página.
-        """
-        context = super().get_context_data(**kwargs)
-        context['page_title'] = 'Painel do Requisitante'
-        # Futuramente, aqui buscaremos o histórico de requisições deste usuário.
-        # context['minhas_requisicoes'] = ...
-        return context
     
 class RequisitanteDashboardView(LoginRequiredMixin, TemplateView):
     template_name = 'users/dashboard_requisitante.html'

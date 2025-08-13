@@ -1,0 +1,51 @@
+/* static/css/dashboard-cards.css */
+
+.card-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.dashboard-card {
+    border: none;
+    border-radius: 12px;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+}
+
+.card-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+    color: #2c5d7a;
+}
+
+.card-title {
+    font-weight: 600;
+}
+.btn-card-logout {
+    background: none;      /* Remove o fundo do botão */
+    color: inherit;        /* Herda a cor do texto */
+    border: none;          /* Remove a borda */
+    padding: 0;            /* Remove o preenchimento */
+    font: inherit;         /* Herda as propriedades da fonte */
+    cursor: pointer;       /* Mantém o cursor de ponteiro */
+    outline: inherit;      /* Remove o contorno de foco */
+    width: 100%;           /* Faz o botão ocupar todo o espaço do card */
+    height: 100%;          /* Faz o botão ocupar toda a altura */
+    text-align: inherit;   /* Garante o alinhamento do texto */
+}
+
+/* Variações de cor */
+.dashboard-card.card-info { background-color: #cff4fc; }
+.dashboard-card.card-info .card-icon { color: #0dcaf0; }
+
+.dashboard-card.card-warning { background-color: #fff3cd; }
+.dashboard-card.card-warning .card-icon { color: #ffc107; }
+
+.dashboard-card.card-danger { background-color: #f8d7da; }
+.dashboard-card.card-danger .card-icon { color: #dc3545; }
+

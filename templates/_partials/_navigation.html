@@ -5,55 +5,22 @@
         </button>
         
         <div class="collapse navbar-collapse" id="navbarNav">
-            <div class="navbar-nav w-100">
-                <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="inicioDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Início
+            <div class="navbar-nav w-100 align-items-center"> {# Adicionado 'align-items-center' para melhor alinhamento vertical #}
+                {% if request.resolver_match.url_name != 'dashboard' %}
+                <div class="nav-item">
+                    <a href="{% url 'core:dashboard' %}" class="btn btn-outline-light btn-sm d-flex align-items-center">
+                        <i class="bi bi-arrow-left-circle me-2"></i>
+                        Voltar ao Painel
                     </a>
-                    <ul class="dropdown-menu" aria-labelledby="inicioDropdown">
-                        <li><a class="dropdown-item" href="{% url 'core:dashboard' %}"><strong>Painel Principal</strong></a></li>
-
-                        {% if user.is_authenticated %}
-                            
-                            <!-- Bloco de links para usuários administrativos e do almoxarifado -->
-                            {% if user.is_superuser or 'Almoxarifes' in user.groups.all|join:',' or 'Administradores' in user.groups.all|join:',' %}
-                                <li><a class="dropdown-item" href="{% url 'materiais:registrar_entrada' %}"><strong>Registrar Entrada</strong></a></li>
-                                <li><a class="dropdown-item" href="{% url 'materiais:lista_requisicoes_pendentes' %}"><strong>Requisições Pendentes</strong></a></li>
-                                <li><a class="dropdown-item" href="{% url 'materiais:lista_produtos' %}"><strong>Consultar Estoque</strong></a></li>
-                                <li><a class="dropdown-item" href="{% url 'relatorios:relatorio_consumo' %}"><strong>Relatórios de Consumo</strong></a></li>
-                                <li><a class="dropdown-item" href="{% url 'chat:chat_home' %}"><strong>Chat Interno</strong></a></li>
-
-                            {% endif %}
-
-                            <!-- Bloco de links para Requisitantes -->
-                            {% for group in user.groups.all %}
-                                {% if group.name == 'Requisitantes' %}
-                                    <li><a class="dropdown-item" href="{% url 'authentication:dashboard_requisitante' %}"><strong>Meu Painel de Requisitante</strong></a></li>
-                                {% endif %}
-                            {% endfor %}
-
+                </div>
+                {% endif %}
+                {% if user.is_authenticated %}
+                    {% for group in user.groups.all %}
+                        {% if group.name == 'Requisitantes' %}
+                            <a class="nav-link" href="{% url 'authentication:dashboard_requisitante' %}">
                         {% endif %}
-
-                        <li><a class="dropdown-item" href="#"><strong>Material de Apoio</strong></a></li>
-                    </ul>
-                </div>
-
-                <div class="nav-item dropdown ms-auto">
-                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Olá, {{ user.funcionario.nome|default:'Usuário' }}
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li><a class="dropdown-item" href="#"><strong>Minha Conta</strong></a></li>
-                        <li>
-                            <form action="{% url 'authentication:logout' %}" method="post" class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" class="dropdown-item" style="border: none; background: none; text-align: left; width: 100%;">
-                                    <strong>Sair do Sistema</strong>
-                                </button>
-                            </form>
-                        </li>
-                    </ul>
-                </div>
+                    {% endfor %}
+                {% endif %}
             </div>
         </div>
     </div>

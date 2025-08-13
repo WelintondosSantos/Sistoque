@@ -1,7 +1,7 @@
 // static/js/chat.js
 
 document.addEventListener('DOMContentLoaded', function() {
-    const currentUserUsername = JSON.parse(document.getElementById('current-user-username').textContent);
+    // Seletores de elementos DOM
     const chatLog = document.querySelector('#chat-log');
     const messageInput = document.querySelector('#chat-message-input');
     const messageSubmit = document.querySelector('#chat-message-submit');
@@ -9,116 +9,126 @@ document.addEventListener('DOMContentLoaded', function() {
     const chatRoomName = document.querySelector('#chat-room-name');
 
     let chatSocket = null;
+    let currentConversationId = null;
 
+    // Função para rolar o chat para a última mensagem
     function scrollToBottom() {
         chatLog.scrollTop = chatLog.scrollHeight;
     }
 
-    // --- NOVA FUNÇÃO PARA RENDERIZAR UMA MENSAGEM ---
+    // --- MUDANÇA: Função 'renderMessage' refatorada com Template Literals e 'is_me' ---
+    // Agora usa 'data.is_me' vindo do backend para estilizar a mensagem.
     function renderMessage(data) {
-        const messageContainer = document.createElement('div');
-        const messageBubble = document.createElement('div');
-        const userElement = document.createElement('p');
-        const textElement = document.createElement('p');
-        const timeElement = document.createElement('p');
+        // Remove a mensagem "Nenhuma mensagem ainda" se ela existir
+        const emptyMsg = document.querySelector('#chat-empty-message');
+        if (emptyMsg) emptyMsg.remove();
 
-        messageContainer.classList.add('d-flex', 'mb-3');
-        messageBubble.classList.add('p-2', 'rounded');
-        messageBubble.style.maxWidth = '80%';
-        userElement.classList.add('mb-1', 'small');
-        textElement.classList.add('mb-0');
-        timeElement.classList.add('mb-0', 'text-end', 'small', 'opacity-75', 'mt-1');
-
-        userElement.innerHTML = `<strong>${data.user}</strong>`;
-        textElement.textContent = data.message;
-        timeElement.textContent = data.timestamp; // <-- Usa o timestamp completo
-
-        // Esta comparação pode precisar de ajuste se o nome completo for diferente do username
-        if (data.user === currentUserUsername || data.user === document.querySelector('a.nav-link.dropdown-toggle').textContent.trim().replace('Olá, ','')) {
-            messageContainer.classList.add('justify-content-end');
-            messageBubble.classList.add('bg-primary', 'text-white');
-        } else {
-            messageContainer.classList.add('justify-content-start');
-            messageBubble.classList.add('bg-light', 'text-dark');
-        }
-
-        messageBubble.appendChild(userElement);
-        messageBubble.appendChild(textElement);
-        messageBubble.appendChild(timeElement);
-        messageContainer.appendChild(messageBubble);
-        chatLog.appendChild(messageContainer);
-    }
-
-    // --- NOVA FUNÇÃO PARA CARREGAR O HISTÓRICO ---
-    async function loadChatHistory(conversaId) {
-        chatLog.innerHTML = '<p class="text-center text-muted">A carregar histórico...</p>';
-        try {
-            const response = await fetch(`/chat/historico/${conversaId}/`);
-            const data = await response.json();
-            
-            chatLog.innerHTML = ''; // Limpa a mensagem de "a carregar"
-            
-            if (data.historico && data.historico.length > 0) {
-                data.historico.forEach(msg => renderMessage(msg));
-            } else {
-                chatLog.innerHTML = '<p id="chat-empty-message" class="text-center text-muted mt-5">Nenhuma mensagem ainda. Inicie a conversa!</p>';
-            }
-            scrollToBottom();
-        } catch (error) {
-            console.error('Erro ao carregar o histórico:', error);
-            chatLog.innerHTML = '<p class="text-center text-danger">Não foi possível carregar o histórico.</p>';
-        }
+        const bubbleClasses = data.is_me ? 'justify-content-end' : 'justify-content-start';
+        const messageClasses = data.is_me ? 'bg-primary text-white' : 'bg-light text-dark';
+        
+        // Usando template literal para criar o HTML de forma mais limpa
+        const messageHTML = `
+            <div class="d-flex mb-3 ${bubbleClasses}">
+                <div class="p-2 rounded ${messageClasses}" style="max-width: 80%;">
+                    <p class="mb-1 small"><strong>${data.user}</strong></p>
+                    <p class="mb-0" style="word-wrap: break-word;">${data.message}</p>
+                    <p class="mb-0 text-end small opacity-75 mt-1">${data.timestamp}</p>
+                </div>
+            </div>`;
+        
+        chatLog.insertAdjacentHTML('beforeend', messageHTML);
     }
 
     function connectToChat(conversaId) {
+        // Evita reconexões desnecessárias para a mesma conversa
+        if (chatSocket && currentConversationId === conversaId) {
+            return;
+        }
+        currentConversationId = conversaId;
+
+        // Fecha qualquer socket anterior
         if (chatSocket) {
             chatSocket.close();
         }
         
-        loadChatHistory(conversaId);
+        // --- MUDANÇA: Lógica de carregamento agora é interna do WebSocket ---
+        chatLog.innerHTML = '<p class="text-center text-muted">A ligar ao chat...</p>';
 
-        chatSocket = new WebSocket(
-            'ws://' + window.location.host + '/ws/chat/' + conversaId + '/'
-        );
+        // --- MUDANÇA: Protocolo dinâmico (ws:// ou wss://) para segurança 🔒 ---
+        const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+        const wsURL = `${protocol}${window.location.host}/ws/chat/${conversaId}/`;
+        
+        chatSocket = new WebSocket(wsURL);
 
-        chatSocket.onopen = function(e) {
-            chatInputContainer.style.display = 'flex';
-        };
-
+        // --- MUDANÇA: Lógica 'onmessage' agora trata o histórico e novas mensagens ---
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
-            const emptyMsg = document.querySelector('#chat-empty-message');
-            if (emptyMsg) emptyMsg.remove();
-            renderMessage(data);
+
+            if (data.type === 'message_history') {
+                // Limpa a mensagem "A ligar..."
+                chatLog.innerHTML = ''; 
+                
+                if (data.history && data.history.length > 0) {
+                    // Renderiza cada mensagem do histórico recebido
+                    data.history.forEach(msg => renderMessage(msg));
+                } else {
+                    // Exibe uma mensagem se não houver histórico
+                    chatLog.innerHTML = '<p id="chat-empty-message" class="text-center text-muted mt-5">Nenhuma mensagem ainda. Inicie a conversa!</p>';
+                }
+            } else {
+                // Se não for histórico, é uma nova mensagem em tempo real
+                renderMessage(data);
+            }
             scrollToBottom();
         };
 
+        chatSocket.onopen = function(e) {
+            // Mostra o campo de input apenas quando a conexão estiver pronta
+            chatInputContainer.style.display = 'flex';
+            messageInput.focus();
+        };
+
         chatSocket.onclose = function(e) {
+            console.error('O socket do chat fechou inesperadamente.');
             chatInputContainer.style.display = 'none';
         };
     }
 
     function sendMessage() {
         const message = messageInput.value;
-        if (message.trim() === '' || !chatSocket) return;
-        chatSocket.send(JSON.stringify({'message': message}));
+        if (message.trim() === '' || !chatSocket || chatSocket.readyState !== WebSocket.OPEN) {
+            return;
+        }
+        
+        chatSocket.send(JSON.stringify({
+            'message': message
+        }));
+        
         messageInput.value = '';
         messageInput.focus();
     }
 
+    // Event listeners para enviar a mensagem
     messageSubmit.onclick = sendMessage;
     messageInput.onkeyup = function(e) {
-        if (e.key === 'Enter') sendMessage();
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
     };
 
+    // Lógica inicial para pegar o ID da conversa da URL e iniciar o chat
     const urlParams = new URLSearchParams(window.location.search);
-    const conversaId = urlParams.get('conversa_id');
+    const conversaIdFromURL = urlParams.get('conversa_id');
 
-    if (conversaId) {
-        connectToChat(conversaId);
-        const activeLink = document.querySelector(`a[href="?conversa_id=${conversaId}"]`);
+    if (conversaIdFromURL) {
+        connectToChat(conversaIdFromURL);
+        
+        // Atualiza o nome da sala de chat no cabeçalho
+        const activeLink = document.querySelector(`.list-group-item[data-conversa-id="${conversaIdFromURL}"]`);
         if (activeLink) {
-            chatRoomName.textContent = activeLink.textContent.trim();
+            // Pega o nome do contato de um elemento filho para não pegar o "badge"
+            const contactName = activeLink.querySelector('.contact-name').textContent;
+            chatRoomName.textContent = contactName.trim();
         }
     }
 });
