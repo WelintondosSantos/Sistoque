@@ -13,22 +13,6 @@
         
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                
-                {# ===================================================================== #}
-                {# LINK DO REQUISITANTE - LÓGICA SIMPLIFICADA #}
-                {# ===================================================================== #}
-                {% if user|has_group:'Requisitantes' %}
-                <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_requisitante' %}active{% endif %}" 
-                       href="{% url 'authentication:dashboard_requisitante' %}">
-                        Meu Painel
-                    </a>
-                </li>
-                {% endif %}
-
-                {# ===================================================================== #}
-                {# LINKS DO ALMOXARIFE / ADMIN #}
-                {# ===================================================================== #}
                 {# Link para o painel de administração do Django para superusuários #}
                 {% if user.is_superuser %}
                 <li class="nav-item">
@@ -36,7 +20,6 @@
                 </li>
                 {% endif %}
             </ul>
-
             {# Botão Voltar (Movido para o final para melhor alinhamento) #}
             {% if request.resolver_match.url_name != 'dashboard' %}
             <a href="{% url 'core:dashboard' %}" class="btn btn-outline-light btn-sm d-flex align-items-center">
