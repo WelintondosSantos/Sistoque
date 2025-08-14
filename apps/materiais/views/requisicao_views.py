@@ -31,15 +31,38 @@ class ProdutoListView(LoginRequiredMixin, ListView):
         context['page_title'] = 'Posição de Estoque'
         return context
 
-class RequisicaoCreateView(LoginRequiredMixin, View):
+class RequisicaoCreateView(LoginRequiredMixin, UserPassesTestMixin, View):
     template_name = 'materiais/requisicao_form.html'
     form_class = RequisicaoForm
+    
+    # Adicionamos o login_url para ter certeza do destino em caso de falha de login
+    login_url = '/authentication/login/'
+
+    def dispatch(self, request, *args, **kwargs):
+    
+        return super().dispatch(request, *args, **kwargs)
+
+    def test_func(self):
+        user = self.request.user
+        
+        # Vamos ver todos os grupos do usuário
+        grupos_usuario = list(user.groups.values_list('name', flat=True))
+
+        # Verificação da permissão
+        tem_permissao = user.is_superuser or 'Requisitantes' in grupos_usuario
+        return tem_permissao
+
+    def handle_no_permission(self):
+        messages.error(self.request, "Você não tem permissão para acessar esta página.")
+        # O Django, por padrão, redireciona para o login_url. Vamos manter esse comportamento.
+        return super().handle_no_permission()
 
     def get(self, request, *args, **kwargs):
         form = self.form_class()
         return render(request, self.template_name, {'form': form, 'page_title': 'Adicionar Item à Requisição'})
 
     def post(self, request, *args, **kwargs):
+        # O resto do seu método post continua igual
         form = self.form_class(request.POST)
         if form.is_valid():
             produto = form.cleaned_data['produto']
@@ -67,6 +90,7 @@ class RequisicaoCreateView(LoginRequiredMixin, View):
                 messages.success(request, f"Item '{produto.nome_produto}' adicionado à sua requisição.")
             return redirect('materiais:detalhe_requisicao', pk=requisicao_aberta.pk)
         return render(request, self.template_name, {'form': form, 'page_title': 'Adicionar Item à Requisição'})
+
 
 class RequisicaoDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = Requisicao

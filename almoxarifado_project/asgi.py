@@ -7,7 +7,8 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
 import apps.chat.routing  # Importa as rotas WebSocket do seu app de chat
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'seu_projeto.settings')
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'almoxarifado_project.settings.development')
 
 # --- MUDANÇA: Esta é a configuração chave ---
 # ProtocolTypeRouter primeiro inspeciona o tipo de conexão.

@@ -1,3 +1,4 @@
+
 from .base import *
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -11,6 +12,10 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
+
+SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
 
 # Adicione aqui outras configurações específicas de desenvolvimento
 # por exemplo, a 'django-debug-toolbar'

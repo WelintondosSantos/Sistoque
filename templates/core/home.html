@@ -1,5 +1,6 @@
 {% extends "_base.html" %}
 {% load static %}
+{% load auth_extras %} {# Carrega nosso filtro customizado #}
 
 {% block title %}Painel Principal - Sistoque{% endblock %}
 
@@ -12,123 +13,135 @@
 <div class="container-fluid">
 
     {# ===================================================================== #}
-    {#          NOVO BLOCO: Exibe o painel APENAS para Requisitantes         #}
+    {# PAINEL DO REQUISITANTE #}
     {# ===================================================================== #}
-    {% if 'Requisitantes' in user.groups.all|join:',' and not user.is_superuser %}
+    {% if user|has_group:'Requisitantes' and not user.is_superuser %}
     <div class="row">
-        <div class="col-12">
-            <h4 class="mb-3">Meu Painel</h4>
-        </div>
+        <div class="col-12"><h4 class="mb-3">Meu Painel</h4></div>
         <div class="col-xl-3 col-md-4 col-sm-6 mb-4">
-            <a href="{% url 'authentication:dashboard_requisitante' %}" class="card-link">
-                <div class="card dashboard-card card-info shadow h-100">
-                    <div class="card-body text-center">
-                        <i class="bi bi-person-workspace card-icon"></i>
-                        <h5 class="card-title mb-0">Painel do Requisitante</h5>
-                    </div>
+            <div class="card dashboard-card card-info shadow h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-person-workspace card-icon"></i>
+                    <h5 class="card-title mb-0">
+                        <a href="{% url 'authentication:dashboard_requisitante' %}" class="stretched-link text-decoration-none text-dark">
+                            Painel do Requisitante
+                        </a>
+                    </h5>
                 </div>
-            </a>
+            </div>
         </div>
-        {# Se houver outros cards para requisitantes, adicione-os aqui #}
     </div>
     {% endif %}
 
 
-    {# Bloco que já existia: Exibe o painel para Admins e Almoxarifes #}
-    {% if user.is_superuser or 'Almoxarifes' in user.groups.all|join:',' or 'Administradores' in user.groups.all|join:',' %}
+    {# ===================================================================== #}
+    {# PAINEL DO ADMIN / ALMOXARIFE #}
+    {# ===================================================================== #}
+    {% if user.is_superuser or user|has_group:'Almoxarifes' or user|has_group:'Administradores' %}
     <div class="row">
-        <div class="col-12">
-            <h4 class="mb-3">Ações Principais</h4>
+        <div class="col-12"><h4 class="mb-3">Ações Principais</h4></div>
+
+        <div class="col-xl-3 col-md-4 col-sm-6 mb-4">
+            <div class="card dashboard-card shadow h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-box-arrow-in-down card-icon"></i>
+                    <h5 class="card-title mb-0">
+                        <a href="{% url 'materiais:registrar_entrada' %}" class="stretched-link text-decoration-none text-dark">
+                            Registrar Entrada
+                        </a>
+                    </h5>
+                </div>
+            </div>
         </div>
 
         <div class="col-xl-3 col-md-4 col-sm-6 mb-4">
-            <a href="{% url 'materiais:registrar_entrada' %}" class="card-link">
-                <div class="card dashboard-card shadow h-100">
-                    <div class="card-body text-center">
-                        <i class="bi bi-box-arrow-in-down card-icon"></i>
-                        <h5 class="card-title mb-0">Registrar Entrada</h5>
-                    </div>
+            <div class="card dashboard-card shadow h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-journal-text card-icon"></i>
+                    <h5 class="card-title mb-0">
+                        <a href="{% url 'materiais:lista_requisicoes_pendentes' %}" class="stretched-link text-decoration-none text-dark">
+                            Requisições Pendentes
+                        </a>
+                    </h5>
                 </div>
-            </a>
+            </div>
         </div>
 
         <div class="col-xl-3 col-md-4 col-sm-6 mb-4">
-            <a href="{% url 'materiais:lista_requisicoes_pendentes' %}" class="card-link">
-                <div class="card dashboard-card shadow h-100">
-                    <div class="card-body text-center">
-                        <i class="bi bi-journal-text card-icon"></i>
-                        <h5 class="card-title mb-0">Requisições Pendentes</h5>
-                    </div>
+            <div class="card dashboard-card shadow h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-box-seam card-icon"></i>
+                    <h5 class="card-title mb-0">
+                        <a href="{% url 'materiais:lista_produtos' %}" class="stretched-link text-decoration-none text-dark">
+                            Consultar Estoque
+                        </a>
+                    </h5>
                 </div>
-            </a>
+            </div>
         </div>
 
         <div class="col-xl-3 col-md-4 col-sm-6 mb-4">
-            <a href="{% url 'materiais:lista_produtos' %}" class="card-link">
-                <div class="card dashboard-card shadow h-100">
-                    <div class="card-body text-center">
-                        <i class="bi bi-box-seam card-icon"></i>
-                        <h5 class="card-title mb-0">Consultar Estoque</h5>
-                    </div>
+            <div class="card dashboard-card shadow h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-file-earmark-bar-graph card-icon"></i>
+                    <h5 class="card-title mb-0">
+                        <a href="{% url 'relatorios:relatorio_consumo' %}" class="stretched-link text-decoration-none text-dark">
+                            Relatórios
+                        </a>
+                    </h5>
                 </div>
-            </a>
-        </div>
-
-        <div class="col-xl-3 col-md-4 col-sm-6 mb-4">
-            <a href="{% url 'relatorios:relatorio_consumo' %}" class="card-link">
-                <div class="card dashboard-card shadow h-100">
-                    <div class="card-body text-center">
-                        <i class="bi bi-file-earmark-bar-graph card-icon"></i>
-                        <h5 class="card-title mb-0">Relatórios</h5>
-                    </div>
-                </div>
-            </a>
+            </div>
         </div>
     </div>
     {% endif %}
 
     <hr class="my-4">
 
-    {# Seção de Utilitários, visível para todos #}
+    {# ===================================================================== #}
+    {# SEÇÃO DE UTILITÁRIOS #}
+    {# ===================================================================== #}
     <div class="row">
-        <div class="col-12">
-            <h4 class="mb-3">Utilitários</h4>
-        </div>
+        <div class="col-12"><h4 class="mb-3">Utilitários</h4></div>
 
         <div class="col-xl-3 col-md-4 col-sm-6 mb-4">
-            <a href="{% url 'chat:chat_home' %}" class="card-link">
-                <div class="card dashboard-card card-info shadow h-100">
-                    <div class="card-body text-center">
-                        <i class="bi bi-chat-dots-fill card-icon"></i>
-                        <h5 class="card-title mb-0">Chat Interno</h5>
-                    </div>
+            <div class="card dashboard-card card-info shadow h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-chat-dots-fill card-icon"></i>
+                    <h5 class="card-title mb-0">
+                        <a href="{% url 'chat:chat_home' %}" class="stretched-link text-decoration-none text-dark">
+                            Chat Interno
+                        </a>
+                    </h5>
                 </div>
-            </a>
+            </div>
         </div>
         
         <div class="col-xl-3 col-md-4 col-sm-6 mb-4">
-            <a href="#" class="card-link"> {# << INSIRA A URL DA PÁGINA DE AVISOS AQUI #}
-                <div class="card dashboard-card card-warning shadow h-100">
-                    <div class="card-body text-center">
-                        <i class="bi bi-exclamation-triangle-fill card-icon"></i>
-                        <h5 class="card-title mb-0">Avisos Gerais</h5>
-                    </div>
+            <div class="card dashboard-card card-warning shadow h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-exclamation-triangle-fill card-icon"></i>
+                    <h5 class="card-title mb-0">
+                        <a href="#" class="stretched-link text-decoration-none text-dark">
+                            Avisos Gerais
+                        </a>
+                    </h5>
                 </div>
-            </a>
+            </div>
         </div>
         
         <div class="col-xl-3 col-md-4 col-sm-6 mb-4">
-            <form action="{% url 'authentication:logout' %}" method="post" class="h-100">
-                {% csrf_token %}
-                <button type="submit" class="btn-card-logout">
-                    <div class="card dashboard-card card-danger shadow h-100">
-                        <div class="card-body text-center">
+            {# PADRÃO CORRIGIDO PARA O LOGOUT #}
+            <div class="card dashboard-card card-danger shadow h-100">
+                <div class="card-body text-center">
+                    <form action="{% url 'authentication:logout' %}" method="post" class="d-flex flex-column h-100">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-logout-card flex-grow-1">
                             <i class="bi bi-box-arrow-right card-icon"></i>
                             <h5 class="card-title mb-0">Sair do Sistema</h5>
-                        </div>
-                    </div>
-                </button>
-            </form>
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>

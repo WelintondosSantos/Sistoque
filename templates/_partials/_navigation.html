@@ -1,27 +1,49 @@
-<nav class="navbar navbar-expand-lg navbar-custom">
+{% load auth_extras %} {# Carrega nosso filtro customizado para verificar grupos #}
+{% load static %} {# Carrega a tag static, caso seja necessário #}
+
+<nav class="navbar navbar-expand-lg navbar-white bg-white navbar-custom">
     <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center" href="{% url 'core:dashboard' %}">
+            <img src="{% static 'img/logo.png' %}" alt="Logo Itesp" width="45" height="45" class="d-inline-block align-text-top me-3">
+            <span class="fs-5">Sistema de Gerenciamento de Estoque de Materiais</span>
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         
         <div class="collapse navbar-collapse" id="navbarNav">
-            <div class="navbar-nav w-100 align-items-center"> {# Adicionado 'align-items-center' para melhor alinhamento vertical #}
-                {% if request.resolver_match.url_name != 'dashboard' %}
-                <div class="nav-item">
-                    <a href="{% url 'core:dashboard' %}" class="btn btn-outline-light btn-sm d-flex align-items-center">
-                        <i class="bi bi-arrow-left-circle me-2"></i>
-                        Voltar ao Painel
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                
+                {# ===================================================================== #}
+                {# LINK DO REQUISITANTE - LÓGICA SIMPLIFICADA #}
+                {# ===================================================================== #}
+                {% if user|has_group:'Requisitantes' %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_requisitante' %}active{% endif %}" 
+                       href="{% url 'authentication:dashboard_requisitante' %}">
+                        Meu Painel
                     </a>
-                </div>
+                </li>
                 {% endif %}
-                {% if user.is_authenticated %}
-                    {% for group in user.groups.all %}
-                        {% if group.name == 'Requisitantes' %}
-                            <a class="nav-link" href="{% url 'authentication:dashboard_requisitante' %}">
-                        {% endif %}
-                    {% endfor %}
+
+                {# ===================================================================== #}
+                {# LINKS DO ALMOXARIFE / ADMIN #}
+                {# ===================================================================== #}
+                {# Link para o painel de administração do Django para superusuários #}
+                {% if user.is_superuser %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'admin:index' %}" target="_blank">Admin Django</a>
+                </li>
                 {% endif %}
-            </div>
+            </ul>
+
+            {# Botão Voltar (Movido para o final para melhor alinhamento) #}
+            {% if request.resolver_match.url_name != 'dashboard' %}
+            <a href="{% url 'core:dashboard' %}" class="btn btn-outline-light btn-sm d-flex align-items-center">
+                <i class="bi bi-arrow-left-circle me-2"></i>
+                Voltar ao Painel Principal
+            </a>
+            {% endif %}
         </div>
     </div>
 </nav>
