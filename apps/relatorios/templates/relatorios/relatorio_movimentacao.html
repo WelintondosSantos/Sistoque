@@ -1,0 +1,43 @@
+{% extends "_base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light"><h4 class="mb-0">{{ page_title }}</h4></div>
+        <div class="card-body">
+            <div class="row text-center">
+                <div class="col-md-6">
+                    <div class="card bg-success-subtle">
+                        <div class="card-body">
+                            <h6 class="text-muted">TOTAL DE ENTRADAS</h6>
+                            <h3 class="display-6">R$ {{ total_entradas|floatformat:2 }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card bg-danger-subtle">
+                        <div class="card-body">
+                            <h6 class="text-muted">TOTAL DE SAÍDAS</h6>
+                            <h3 class="display-6">R$ {{ total_saidas|floatformat:2 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header"><h5 class="mb-0">Entradas do Período</h5></div>
+        <div class="card-body">
+            </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header"><h5 class="mb-0">Saídas do Período</h5></div>
+        <div class="card-body">
+            </div>
+    </div>
+</div>
+{% endblock %}

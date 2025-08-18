@@ -1,9 +1,10 @@
 # Em apps/materiais/models/catalogo.py
 
 from django.db import models
-from django.db.models import Sum, F, DecimalField
+from django.db.models import Sum, Case, When, F, DecimalField
 from django.db.models.functions import Coalesce
 from django.utils import timezone
+
 
 class Categoria(models.Model):
     # ... (código inalterado) ...
@@ -37,6 +38,47 @@ class Produto(models.Model):
     ativo = models.BooleanField(default=True, verbose_name="Ativo")
     data_cadastro = models.DateTimeField(default=timezone.now, verbose_name="Data de Cadastro")
     
+    def calcular_saldo_ate(self, data_limite):
+        """
+        Calcula o saldo total de um produto somando todas as ENTRADAS
+        e subtraindo todas as SAÍDAS até uma data e hora específicas.
+        """
+        from .transacao import MovimentoEstoque
+
+        if not timezone.is_aware(data_limite):
+            data_limite = timezone.make_aware(data_limite)
+
+        # --- CORREÇÃO APLICADA AQUI ---
+        # O nome do campo foi corrigido de 'data_movimento' para 'data'.
+        movimentos = MovimentoEstoque.objects.filter(
+            lote__produto=self, 
+            data__lte=data_limite  # <-- CAMPO CORRIGIDO
+        )
+
+        resultado = movimentos.aggregate(
+            saldo=Sum(
+                Case(
+                    When(tipo='ENTRADA', then=F('quantidade')),
+                    When(tipo='SAIDA', then=-F('quantidade')),
+                    default=0,
+                    output_field=DecimalField()
+                )
+            )
+        )
+
+        return resultado['saldo'] or 0
+
+    def calcular_custo_medio_ate(self, data_limite):
+        """
+        Calcula o custo médio de um produto até uma data específica.
+        Para este exemplo, retornaremos o custo médio atual do produto,
+        mas esta lógica pode ser expandida para um cálculo histórico mais preciso.
+        """
+        # Lógica simplificada: retorna o custo médio atual.
+        # Uma implementação mais complexa calcularia o custo médio ponderado
+        # com base em todos os movimentos de ENTRADA até a data_limite.
+        return self.custo_medio
+
     @property
     def saldo_total(self):
         """

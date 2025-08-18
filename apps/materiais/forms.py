@@ -3,6 +3,8 @@
 from django import forms
 from django.forms import modelformset_factory
 from .models import Produto, ItemRequisicao
+from django.utils import timezone 
+from .models import Produto, ItemRequisicao, FechamentoMensal
 
 # ... (seu RequisicaoForm e AtendimentoFormSet existentes) ...
 class RequisicaoForm(forms.Form):
@@ -96,3 +98,21 @@ class EntradaForm(forms.Form):
         required=False,
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3})
     )
+    # MUDANÇA AQUI: Adicionamos a validação de período fechado
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        # Usamos a data atual para determinar o período da movimentação
+        data_movimentacao = timezone.now()
+        mes = data_movimentacao.month
+        ano = data_movimentacao.year
+        
+        # Verifica no banco de dados se existe um registro de fechamento ATIVO para este mês/ano
+        if FechamentoMensal.objects.filter(mes=mes, ano=ano, status='ATIVO').exists():
+            # Se existir, levanta um erro de validação que será exibido para o usuário
+            raise forms.ValidationError(
+                f"Não é possível registrar novas entradas no período de {mes:02d}/{ano}, pois ele já foi fechado."
+            )
+            
+        return cleaned_data

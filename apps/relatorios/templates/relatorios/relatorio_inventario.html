@@ -1,0 +1,74 @@
+{% extends "_base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_head %}
+    {# Adicionando FontAwesome para os ícones, caso não esteja no _base.html #}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="mb-0">{{ page_title }}</h4>
+                <small class="text-muted">Status: {{ fechamento.get_status_display }} | Realizado por: {{ fechamento.responsavel.username }} em {{ fechamento.data_fechamento|date:"d/m/Y H:i" }}</small>
+            </div>
+            <div>
+                {# Link para o relatório de movimentação do mesmo período #}
+                <a href="{% url 'relatorios:relatorio_fechamento_movimentacao' ano=fechamento.ano mes=fechamento.mes %}" class="btn btn-info">
+                    <i class="fas fa-exchange-alt me-2"></i>Ver Movimentação do Período
+                </a>
+                {# Adicionar um botão de "Imprimir" no futuro seria uma boa melhoria #}
+            </div>
+        </div>
+        <div class="card-body">
+            <p>Este relatório apresenta a "fotografia" do estoque no final do período de <strong>{{ fechamento.mes|stringformat:"02d" }}/{{ fechamento.ano }}</strong>.</p>
+
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">Produto</th>
+                            <th scope="col" class="text-center">Unidade</th>
+                            <th scope="col" class="text-center">Quantidade Final</th>
+                            <th scope="col" class="text-end">Custo Médio Unit. (R$)</th>
+                            <th scope="col" class="text-end">Valor Total em Estoque (R$)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for posicao in fechamento.posicoes.all %}
+                        <tr>
+                            <td>
+                                <strong>{{ posicao.produto.nome_produto }}</strong><br>
+                                <small class="text-muted">{{ posicao.produto.codigo_produto }}</small>
+                            </td>
+                            <td class="text-center">{{ posicao.produto.unidade_medida }}</td>
+                            <td class="text-center">{{ posicao.quantidade_final|floatformat:2 }}</td>
+                            <td class="text-end">{{ posicao.custo_medio_final|floatformat:2 }}</td>
+                            <td class="text-end"><strong>R$ {{ posicao.valor_total_final|floatformat:2 }}</strong></td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                Nenhuma posição de estoque foi registrada para este fechamento.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-group-divider">
+                        <tr>
+                            <td colspan="4" class="text-end fw-bold">Valor Total do Inventário:</td>
+                            <td class="text-end fw-bold fs-5">
+                                R$ {{ total_inventario|floatformat:2 }}
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

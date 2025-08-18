@@ -1,0 +1,120 @@
+{% extends "_base.html" %}
+{% load static %}
+
+{% block title %}Painel de Fechamento Mensal{% endblock %}
+
+{% block extra_head %}
+{# Adicionando FontAwesome para os ícones, caso não esteja no _base.html #}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <div class="card shadow-sm mb-4 border-primary">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="fas fa-cogs me-2"></i>Painel de Ações</h4>
+        </div>
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-6 border-end">
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-1">ÚLTIMO PERÍODO ATIVO</h6>
+                        {% with ultimo_fechamento_ativo=fechamentos|slice:":1"|first %}
+                            {% if ultimo_fechamento_ativo and ultimo_fechamento_ativo.status == 'ATIVO' %}
+                                <h3 class="display-6">{{ ultimo_fechamento_ativo.mes|stringformat:"02d" }}/{{ ultimo_fechamento_ativo.ano }}</h3>
+                            {% else %}
+                                <h3 class="display-6 text-muted">Nenhum</h3>
+                                <small class="text-muted">Ainda não há fechamentos ativos.</small>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-1">PRÓXIMO PERÍODO A FECHAR</h6>
+                         {% if proximo_fechamento %}
+                            <h3 class="display-6">{{ proximo_fechamento.mes|stringformat:"02d" }}/{{ proximo_fechamento.ano }}</h3>
+                        {% else %}
+                            <p class="text-info mt-2 mb-0">O mês atual ainda não terminou ou todos os períodos já foram fechados.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-md-6 text-center">
+                    <div class="d-grid gap-2">
+                        
+                        <form method="post" action="{% url 'materiais:fazer_fechamento' %}" onsubmit="return confirm('Confirmar o fechamento de {{ proximo_fechamento.mes|stringformat:"02d" }}/{{ proximo_fechamento.ano }}? Esta ação irá criar uma fotografia do estoque atual.');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success btn-lg w-100" {% if not proximo_fechamento %}disabled{% endif %}>
+                                <i class="fas fa-calendar-check me-2"></i>Fazer Fechamento Mensal
+                            </button>
+                        </form>
+
+                        <form method="post" action="{% url 'materiais:reabrir_ultimo_fechamento' %}" onsubmit="return confirm('Tem certeza que deseja REABRIR (cancelar) o último período? Movimentações voltarão a ser permitidas.');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-warning btn-lg w-100" {% if not pode_reabrir %}disabled{% endif %}>
+                                <i class="fas fa-undo me-2"></i>Reabrir Último Período
+                            </button>
+                        </form>
+                    </div>
+                    <small class="form-text text-muted mt-2 d-block">
+                        {% if not pode_reabrir %}O botão "Reabrir" será ativado quando houver um fechamento ativo.{% endif %}
+                        {% if not proximo_fechamento and pode_reabrir %}O botão "Fazer Fechamento" será liberado após o fim do mês corrente.{% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="fas fa-history me-2"></i>Histórico de Fechamentos</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">Período</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Realizado em</th>
+                            <th scope="col">Responsável</th>
+                            <th scope="col" class="text-end">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fechamento in fechamentos %}
+                        <tr>
+                            <td><strong>{{ fechamento.mes|stringformat:"02d" }}/{{ fechamento.ano }}</strong></td>
+                            <td>
+                                <span class="badge {% if fechamento.status == 'ATIVO' %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {{ fechamento.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ fechamento.data_fechamento|date:"d/m/Y H:i" }}</td>
+                            <td>{{ fechamento.responsavel.username }}</td>
+                            <td class="text-end">
+                                {% if fechamento.status == 'ATIVO' %}
+                                <a href="{% url 'relatorios:relatorio_fechamento_inventario' pk=fechamento.pk %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-file-alt me-1"></i> Ver Relatório
+                                </a>
+                                {% elif fechamento.data_cancelamento %}
+                                 <span class="text-muted fst-italic" title="Cancelado por {{ fechamento.cancelado_por.username }} em {{ fechamento.data_cancelamento|date:'d/m/Y H:i' }}">
+                                     Cancelado
+                                 </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                Nenhum fechamento foi realizado ainda.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

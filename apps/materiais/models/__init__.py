@@ -1,7 +1,5 @@
 # Em apps/materiais/models/__init__.py
 
-# Importa todos os modelos dos nossos novos ficheiros para que fiquem
-# acessíveis a partir de 'apps.materiais.models'.
-from .catalogo import *
-from .requisicao import *
-from .transacao import *
+from .catalogo import Categoria, Almoxarifado, Produto
+from .transacao import Lote, MovimentoEstoque, FechamentoMensal, PosicaoEstoqueMensal
+from .requisicao import Requisicao, ItemRequisicao

@@ -5,3 +5,4 @@
 from .produto_views import *
 from .entrada_views import *
 from .requisicao_views import *
+from .fechamento_views import *

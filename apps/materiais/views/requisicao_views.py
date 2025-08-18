@@ -12,6 +12,8 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 from weasyprint import HTML
 
+from apps.materiais.models.transacao import FechamentoMensal
+
 # As importações de modelos e formulários agora usam '..' para subir um nível de diretório.
 from ..models import MovimentoEstoque, Almoxarifado, Requisicao, ItemRequisicao, Produto, Lote
 from ..forms import RequisicaoForm, AtendimentoFormSet, EntradaForm
@@ -220,6 +222,7 @@ class RequisicaoAtendimentoView(LoginRequiredMixin, UserPassesTestMixin, View):
         return user.is_superuser or user.groups.filter(name__in=['Administradores', 'Almoxarifes']).exists()
 
     def get(self, request, *args, **kwargs):
+        # ... (código do método get sem alterações) ...
         requisicao = get_object_or_404(Requisicao, pk=self.kwargs.get('pk'))
         formset = AtendimentoFormSet(queryset=requisicao.itens.all())
         
@@ -236,22 +239,35 @@ class RequisicaoAtendimentoView(LoginRequiredMixin, UserPassesTestMixin, View):
         requisicao = get_object_or_404(Requisicao, pk=self.kwargs.get('pk'))
         formset = AtendimentoFormSet(request.POST, queryset=requisicao.itens.all())
 
+        # =====================================================================
+        # MUDANÇA AQUI: Adicionamos a validação de período fechado
+        # =====================================================================
+        data_movimentacao = timezone.now()
+        mes = data_movimentacao.month
+        ano = data_movimentacao.year
+        if FechamentoMensal.objects.filter(mes=mes, ano=ano, status='ATIVO').exists():
+            messages.error(
+                request,
+                f"Não é possível atender esta requisição no período de {mes:02d}/{ano}, pois ele já foi fechado."
+            )
+            return redirect('materiais:detalhe_requisicao', pk=requisicao.pk)
+        # =====================================================================
+
         if formset.is_valid():
             try:
                 with transaction.atomic():
+                    # ... (resto do código do método post sem alterações) ...
                     almoxarifado_padrao = Almoxarifado.objects.filter(ativo=True).first()
                     if not almoxarifado_padrao:
                         raise ValueError("Nenhum almoxarifado ativo encontrado.")
                     
-                    formset.save() # Salva as quantidades atendidas nos itens
+                    formset.save()
 
-                    # --- LÓGICA FEFO (First-Expire, First-Out) ---
                     for item in requisicao.itens.all():
                         quantidade_a_atender = item.quantidade_atendida
                         if not quantidade_a_atender or quantidade_a_atender <= 0:
                             continue
 
-                        # Busca os lotes do produto com saldo, ordenados pela data de validade
                         lotes_disponiveis = Lote.objects.filter(
                             produto=item.produto,
                             quantidade_atual__gt=0
@@ -259,13 +275,12 @@ class RequisicaoAtendimentoView(LoginRequiredMixin, UserPassesTestMixin, View):
 
                         for lote in lotes_disponiveis:
                             if quantidade_a_atender <= 0:
-                                break # Já atendemos a quantidade necessária para este item
+                                break
 
                             quantidade_a_retirar = min(lote.quantidade_atual, quantidade_a_atender)
                             
-                            # Cria o movimento de SAÍDA ligado ao LOTE específico
                             MovimentoEstoque.objects.create(
-                                lote=lote, # <-- CORRIGIDO
+                                lote=lote,
                                 almoxarifado=almoxarifado_padrao,
                                 quantidade=quantidade_a_retirar,
                                 tipo='SAIDA',
@@ -273,11 +288,9 @@ class RequisicaoAtendimentoView(LoginRequiredMixin, UserPassesTestMixin, View):
                                 observacao=f"Atendimento da Requisição #{requisicao.id}"
                             )
                             
-                            # Atualiza o saldo do lote
                             lote.quantidade_atual -= quantidade_a_retirar
                             lote.save()
                             
-                            # Decrementa a quantidade que ainda falta atender
                             quantidade_a_atender -= quantidade_a_retirar
                     
                     requisicao.status = 'ATENDIDA'

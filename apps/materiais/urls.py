@@ -28,5 +28,11 @@ urlpatterns = [
     path('requisicao/atendimento/<int:pk>/', views.RequisicaoAtendimentoView.as_view(), name='atendimento_requisicao'),
     # Url dos Pdfs.
     path('requisicao/<int:pk>/pdf/', RequisicaoPDFView.as_view(), name='requisicao_pdf'),
+
+        # --- Rota para o Painel de Fechamento Mensal ---
+    path('fechamento/painel/', views.FechamentoListView.as_view(), name='painel_fechamento'),
+    path('fechamentos/fazer/', views.FazerFechamentoView.as_view(), name='fazer_fechamento'),
+    path('fechamentos/reabrir/', views.ReabrirUltimoFechamentoView.as_view(), name='reabrir_ultimo_fechamento'),
 ]
+
 
