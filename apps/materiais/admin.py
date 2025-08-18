@@ -3,7 +3,7 @@
 from django.contrib import admin
 from .models import (
     Produto, Categoria, Almoxarifado, Lote, MovimentoEstoque, 
-    Requisicao, ItemRequisicao
+    Requisicao, ItemRequisicao, Classe, PDM, NaturezaDespesa
 )
 
 @admin.register(Categoria)
@@ -59,3 +59,7 @@ class RequisicaoAdmin(admin.ModelAdmin):
 class ItemRequisicaoAdmin(admin.ModelAdmin):
     list_display = ('requisicao', 'produto', 'quantidade', 'quantidade_atendida')
     search_fields = ('requisicao__id', 'produto__nome_produto')
+
+admin.site.register(Classe)
+admin.site.register(PDM)
+admin.site.register(NaturezaDespesa)    

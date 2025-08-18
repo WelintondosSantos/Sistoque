@@ -28,6 +28,52 @@ class Almoxarifado(models.Model):
         verbose_name_plural = "Almoxarifados"
         ordering = ['nome']
 
+class Classe(models.Model):
+    """
+    Representa a Classe de um material (ex: 7520 - Material de Papelaria).
+    """
+    codigo = models.CharField(max_length=20, unique=True, help_text="Código da classe do produto.")
+    descricao = models.TextField(verbose_name="Descrição")
+
+    class Meta:
+        verbose_name = "Classe"
+        verbose_name_plural = "Classes"
+        ordering = ['codigo']
+
+    def __str__(self):
+        return f"{self.codigo} - {self.descricao}"
+
+class PDM(models.Model):
+    """
+    Representa o Padrão Descritivo de Material.
+    """
+    codigo = models.CharField(max_length=20, unique=True, help_text="Código do PDM.")
+    descricao = models.TextField(verbose_name="Descrição")
+
+    class Meta:
+        verbose_name = "PDM"
+        verbose_name_plural = "PDMs"
+        ordering = ['codigo']
+
+    def __str__(self):
+        return f"{self.codigo} - {self.descricao}"
+
+class NaturezaDespesa(models.Model):
+    """
+    Representa a Natureza de Despesa associada a um produto.
+    """
+    codigo = models.CharField(max_length=20, unique=True, help_text="Código da Natureza de Despesa.")
+    descricao = models.TextField(verbose_name="Descrição")
+
+    class Meta:
+        verbose_name = "Natureza de Despesa"
+        verbose_name_plural = "Naturezas de Despesa"
+        ordering = ['codigo']
+
+    def __str__(self):
+        return f"{self.codigo} - {self.descricao}"        
+
+
 class Produto(models.Model):
     categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT, related_name='produtos', verbose_name="Categoria")
     codigo_produto = models.CharField(max_length=50, unique=True, verbose_name="Código do Produto")
@@ -37,6 +83,31 @@ class Produto(models.Model):
     estoque_minimo = models.PositiveIntegerField(default=0, verbose_name="Estoque Mínimo")
     ativo = models.BooleanField(default=True, verbose_name="Ativo")
     data_cadastro = models.DateTimeField(default=timezone.now, verbose_name="Data de Cadastro")
+    
+    classe = models.ForeignKey(
+        Classe,
+        on_delete=models.PROTECT, # Impede a exclusão de uma classe se ela estiver em uso
+        related_name='produtos',
+        verbose_name="Classe",
+        null=True, # Permite que o campo seja nulo no banco de dados
+        blank=True # Permite que o campo seja vazio em formulários
+    )
+    pdm = models.ForeignKey(
+        PDM,
+        on_delete=models.PROTECT,
+        related_name='produtos',
+        verbose_name="PDM",
+        null=True,
+        blank=True
+    )
+    natureza_despesa = models.ForeignKey(
+        NaturezaDespesa,
+        on_delete=models.PROTECT,
+        related_name='produtos',
+        verbose_name="Natureza da Despesa",
+        null=True,
+        blank=True
+    )
     
     def calcular_saldo_ate(self, data_limite):
         """

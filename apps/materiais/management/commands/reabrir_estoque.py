@@ -1,3 +1,5 @@
+# app/materiais/management/commands/reabrir_estoque.py
+
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 from apps.materiais.models import FechamentoMensal
